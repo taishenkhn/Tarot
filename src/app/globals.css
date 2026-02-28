@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+@theme {
+  --color-arcana-dark: #0a0a1a;
+  --color-arcana-deep: #0d0d2b;
+  --color-arcana-purple: #2d1b4e;
+  --color-arcana-violet: #4a2d6e;
+  --color-gold: #c9a84c;
+  --color-gold-light: #e8d48b;
+  --color-gold-dim: #8a7432;
+  --color-star-white: #e8e0f0;
+  --color-star-blue: #a8b4e0;
+  --color-mystic-red: #c94c4c;
+  --font-serif: 'Cinzel', 'Georgia', serif;
+  --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-arcana-dark);
+  color: var(--color-star-white);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Card styling */
+.card-back {
+  background: linear-gradient(135deg, #1a0a3e 0%, #2d1b4e 50%, #1a0a3e 100%);
+  border: 2px solid var(--color-gold-dim);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back::before {
+  content: '✦';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  color: var(--color-gold);
+  opacity: 0.6;
+}
+
+.card-back::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--color-gold-dim);
+  border-radius: 6px;
+  opacity: 0.4;
+}
+
+/* Card hover glow */
+.card-hover-glow {
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.4), 0 0 40px rgba(201, 168, 76, 0.2);
+  transform: translateY(-8px) scale(1.03);
+  border-color: var(--color-gold-light);
+}
+
+/* Card flip animation */
+.card-flip-container {
+  perspective: 1000px;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.card-flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-flip-front,
+.card-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-flip-front {
+  transform: rotateY(180deg);
+}
+
+/* Reversed card */
+.card-reversed {
+  transform: rotateY(180deg) rotateZ(180deg);
+}
+
+/* Slot styling */
+.slot-empty {
+  border: 2px dashed var(--color-gold-dim);
+  border-radius: 8px;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.slot-filled {
+  border: 2px solid var(--color-gold);
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.3);
+}
+
+/* Gesture cursor */
+.gesture-cursor {
+  pointer-events: none;
+  position: fixed;
+  z-index: 9999;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, opacity 0.2s;
+}
+
+.gesture-cursor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.8) 0%, rgba(201, 168, 76, 0) 70%);
+}
+
+.gesture-cursor.pinching {
+  width: 16px;
+  height: 16px;
+}
+
+.gesture-cursor.pinching::before {
+  background: radial-gradient(circle, rgba(232, 212, 139, 1) 0%, rgba(232, 212, 139, 0) 70%);
+}
+
+/* Star trail for cursor */
+.cursor-trail {
+  pointer-events: none;
+  position: fixed;
+  z-index: 9998;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-gold-light);
+  opacity: 0.6;
+  animation: trail-fade 0.5s ease-out forwards;
+}
+
+@keyframes trail-fade {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.2); }
+}
+
+/* Text glow */
+.text-glow {
+  text-shadow: 0 0 10px rgba(201, 168, 76, 0.5), 0 0 20px rgba(201, 168, 76, 0.3);
+}
+
+/* Button styles */
+.btn-arcana {
+  background: linear-gradient(135deg, var(--color-gold-dim) 0%, var(--color-gold) 50%, var(--color-gold-dim) 100%);
+  color: var(--color-arcana-dark);
+  font-weight: 600;
+  padding: 12px 32px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-family: var(--font-serif);
+  letter-spacing: 0.05em;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-arcana:hover {
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-arcana:active {
+  transform: translateY(0);
+}
+
+/* Typing effect */
+@keyframes typing-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '▎';
+  animation: typing-cursor 0.8s infinite;
+  color: var(--color-gold);
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+/* Pulse glow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(201, 168, 76, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(201, 168, 76, 0.6); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fly to slot animation */
+@keyframes fly-to-slot {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.6) translateY(-50px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+}
