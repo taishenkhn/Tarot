@@ -7,6 +7,7 @@ import { SLOT_LABELS } from '@/lib/types';
 import type { ReadingResult } from '@/lib/types';
 import ParticleBackground from '@/components/ParticleBackground';
 import CardImage from '@/components/CardImage';
+import { generateReading } from '@/lib/reading-client';
 import clsx from 'clsx';
 
 export default function ResultPage() {
@@ -41,32 +42,19 @@ export default function ResultPage() {
       setReadingLoading(true);
 
       try {
-        const payload = {
-          question,
-          cards: slots.map(slot => ({
-            id: slot.card!.id,
-            name_cn: slot.card!.name_cn,
-            name_en: slot.card!.name_en,
-            isReversed: slot.isReversed,
-            upright_keywords: slot.card!.upright_keywords,
-            reversed_keywords: slot.card!.reversed_keywords,
-            upright_meaning_short: slot.card!.upright_meaning_short,
-            reversed_meaning_short: slot.card!.reversed_meaning_short,
-          })),
-        };
+        const cards = slots.map(slot => ({
+          id: slot.card!.id,
+          name_cn: slot.card!.name_cn,
+          name_en: slot.card!.name_en,
+          isReversed: slot.isReversed,
+          upright_keywords: slot.card!.upright_keywords,
+          reversed_keywords: slot.card!.reversed_keywords,
+          upright_meaning_short: slot.card!.upright_meaning_short,
+          reversed_meaning_short: slot.card!.reversed_meaning_short,
+        }));
 
-        const res = await fetch('/api/reading', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          throw new Error(`API error: ${res.status}`);
-        }
-
-        const data = await res.json();
-        setReading(data.reading);
+        const { reading } = await generateReading(question, cards);
+        setReading(reading);
       } catch (err: any) {
         console.error('Failed to fetch reading:', err);
         setReadingError('解读生成失败，请重试');
