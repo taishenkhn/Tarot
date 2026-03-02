@@ -27,14 +27,13 @@ export default function LandingPage() {
             ArcanaCam Tarot
           </h1>
           <p className="text-star-white/60 text-lg md:text-xl font-light">
-            摄像头手势塔罗
+            LEX-赛博塔罗
           </p>
         </div>
 
         {/* Description */}
         <p className="max-w-md text-star-white/40 text-sm md:text-base leading-relaxed">
-          通过手势在神秘氛围中完成洗牌、抽取三张牌、翻牌<br />
-          获得温和、正向的塔罗解读
+          通过手势在神秘氛围中完成洗牌、抽取三张牌、翻牌获得塔罗解读
         </p>
 
         {/* CTA Button */}

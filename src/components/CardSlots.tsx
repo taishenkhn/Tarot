@@ -29,7 +29,7 @@ export default function CardSlots({ slots, currentSlotIndex }: CardSlotsProps) {
           {/* Slot card area */}
           <div
             className={clsx(
-              'w-[80px] h-[120px] md:w-[100px] md:h-[150px]',
+              'w-[80px] h-[133px] md:w-[100px] md:h-[167px]',
               'flex items-center justify-center',
               'transition-all duration-500',
               slot.status === 'empty' && 'slot-empty',

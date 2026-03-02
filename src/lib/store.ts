@@ -62,11 +62,13 @@ export const useTarotStore = create<TarotStore>((set, get) => ({
   deck: [],
   displayCards: [],
   shuffleAndPrepare: () => {
-    const shuffled = shuffleDeck([...allCards]);
-    // show 7 cards face-down for user to pick from
+    // Filter to major arcana only (22 cards), then shuffle
+    const majorCards = allCards.filter(c => c.arcana === 'major');
+    const shuffled = shuffleDeck([...majorCards]);
+    // show all 22 major arcana cards face-down for user to pick from
     set({
-      deck: shuffled,
-      displayCards: shuffled.slice(0, 7),
+      deck: shuffleDeck([...allCards]),
+      displayCards: shuffled,
       slots: [
         { card: null, isReversed: false, status: 'empty' },
         { card: null, isReversed: false, status: 'empty' },

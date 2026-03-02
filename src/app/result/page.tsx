@@ -137,13 +137,13 @@ export default function ResultPage() {
               </span>
               <div
                 className={clsx(
-                  'w-[80px] h-[120px] md:w-[100px] md:h-[150px] rounded-lg',
+                  'w-[80px] h-[133px] md:w-[100px] md:h-[167px] rounded-lg',
                   'overflow-hidden',
                   'transition-all duration-500'
                 )}
               >
                 {slot.card && (
-                  <div className={clsx(slot.isReversed && 'rotate-180')}>
+                  <div className={clsx(slot.isReversed && 'rotate-180', 'w-full h-full')}>
                     <CardImage card={slot.card} className="w-full h-full" />
                   </div>
                 )}

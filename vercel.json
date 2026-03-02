@@ -1,6 +1,27 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "outputDirectory": "out",
   "framework": "nextjs",
-  "regions": ["hkg1"]
+  "regions": ["hkg1"],
+  "headers": [
+    {
+      "source": "/mediapipe/(.*)\\.wasm",
+      "headers": [
+        { "key": "Content-Type", "value": "application/wasm" }
+      ]
+    },
+    {
+      "source": "/mediapipe/(.*)\\.tflite",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Permissions-Policy", "value": "camera=*, microphone=()" }
+      ]
+    }
+  ]
 }

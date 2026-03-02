@@ -1,0 +1,40 @@
+[build]
+  command   = "npm run build"
+  publish   = "out"
+
+[build.environment]
+  # Disable the auto-installed @netlify/plugin-nextjs — it does NOT support
+  # output:'export' static mode and will break the deployment.
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  NODE_VERSION             = "20"
+  NEXT_TELEMETRY_DISABLED  = "1"
+
+# ── WASM / TFLite 正确 MIME 类型（iOS Safari 强制要求）──
+[[headers]]
+  for = "/mediapipe/hands/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+
+[[headers]]
+  for = "/mediapipe/hands/*.tflite"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+
+[[headers]]
+  for = "/mediapipe/hands/*.binarypb"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+
+[[headers]]
+  for = "/mediapipe/hands/*.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+# ── 全局头 + 摄像头授权 ──
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy           = "camera=*, microphone=()"
+    Cross-Origin-Opener-Policy   = "same-origin-allow-popups"
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    X-Content-Type-Options       = "nosniff"

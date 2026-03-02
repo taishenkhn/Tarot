@@ -16,6 +16,10 @@ import RitualTransition from '@/components/RitualTransition';
 
 type DrawPhase = 'init' | 'ritual' | 'drawing' | 'revealing' | 'done';
 
+const SWIPE_VELOCITY_THRESHOLD = 400; // px/s horizontal velocity to trigger scroll
+const SWIPE_COOLDOWN_MS = 400; // minimum ms between swipe-triggered scrolls
+const SWIPE_HISTORY_MS = 180; // position history window in ms
+
 export default function DrawPage() {
   const router = useRouter();
   const question = useTarotStore(s => s.question);
@@ -42,6 +46,10 @@ export default function DrawPage() {
 
   const cardDeckRef = useRef<CardDeckRef>(null);
   const lastPinchRef = useRef<number>(0);
+  const lastClickRef = useRef<number>(0);
+  // Swipe detection state
+  const swipePosHistory = useRef<{ x: number; t: number }[]>([]);
+  const lastSwipeRef = useRef<number>(0);
 
   // Redirect if no question
   useEffect(() => {
@@ -89,10 +97,11 @@ export default function DrawPage() {
     return () => window.removeEventListener('resize', updateRects);
   }, [drawPhase, displayCards]);
 
-  // Detect pinch to draw card
+  // Detect pinch to draw card (gesture mode only)
   useEffect(() => {
     if (drawPhase !== 'drawing') return;
     if (currentSlotIndex >= 3) return;
+    if (inputMode !== 'gesture') return; // Only use pinch detection for gesture mode
 
     if (
       cursorState.isPinching &&
@@ -105,7 +114,7 @@ export default function DrawPage() {
         drawCard(cursorState.hoveredCardIndex);
       }
     }
-  }, [cursorState, drawPhase, currentSlotIndex, drawCard]);
+  }, [cursorState, drawPhase, currentSlotIndex, drawCard, inputMode]);
 
   // Transition to reveal when all 3 cards drawn
   useEffect(() => {
@@ -114,7 +123,58 @@ export default function DrawPage() {
     }
   }, [currentSlotIndex, drawPhase]);
 
-  // Mouse/touch fallback handler
+  // Preload card images when display cards change (for smoother flip animation)
+  useEffect(() => {
+    if (drawPhase !== 'drawing' || displayCards.length === 0) return;
+    displayCards.forEach(card => {
+      const img = new Image();
+      img.src = `/cards/${card.image.replace(/\.png$/i, '.jpg')}`;
+    });
+  }, [drawPhase, displayCards]);
+
+  // Swipe detection — track hand velocity and scroll on fast horizontal movement
+  useEffect(() => {
+    if (inputMode !== 'gesture' || drawPhase !== 'drawing') {
+      swipePosHistory.current = [];
+      return;
+    }
+    if (!cursorState.visible || cursorState.isPinching) {
+      swipePosHistory.current = [];
+      return;
+    }
+
+    const now = performance.now();
+
+    // Add position sample
+    swipePosHistory.current.push({ x: cursorState.screenX, t: now });
+
+    // Trim to history window
+    swipePosHistory.current = swipePosHistory.current.filter(
+      p => now - p.t < SWIPE_HISTORY_MS
+    );
+
+    const history = swipePosHistory.current;
+    if (history.length >= 3) {
+      const oldest = history[0];
+      const newest = history[history.length - 1];
+      const dt = (newest.t - oldest.t) / 1000; // seconds
+      if (dt > 0.04) {
+        const velocity = (newest.x - oldest.x) / dt; // px/s
+        if (
+          Math.abs(velocity) > SWIPE_VELOCITY_THRESHOLD &&
+          now - lastSwipeRef.current > SWIPE_COOLDOWN_MS
+        ) {
+          lastSwipeRef.current = now;
+          // Natural touch direction: hand moves left → velocity negative → scroll left (like finger dragging)
+          const direction: 'left' | 'right' = velocity < 0 ? 'left' : 'right';
+          cardDeckRef.current?.scrollByGesture(direction);
+          swipePosHistory.current = []; // reset after triggering
+        }
+      }
+    }
+  }, [cursorState, inputMode, drawPhase]);
+
+  // Mouse/touch fallback handler (hover tracking only, no pinch)
   useEffect(() => {
     if (inputMode === 'gesture') return;
 
@@ -122,22 +182,10 @@ export default function DrawPage() {
       cursorEngine.processPointer(e.clientX, e.clientY, false);
     };
 
-    const handleMouseDown = (e: MouseEvent) => {
-      cursorEngine.processPointer(e.clientX, e.clientY, true);
-    };
-
-    const handleMouseUp = () => {
-      cursorEngine.releasePinch();
-    };
-
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [inputMode]);
 
@@ -188,11 +236,15 @@ export default function DrawPage() {
     router.push('/result');
   }, [router]);
 
-  // Card click handler (for mouse mode)
+  // Card click handler (for mouse mode) with debounce
   const handleCardClick = useCallback(
     (index: number) => {
       if (inputMode === 'gesture') return; // gesture mode uses pinch
       if (currentSlotIndex >= 3) return;
+      // Debounce: ignore clicks within 500ms of last draw
+      const now = performance.now();
+      if (now - lastClickRef.current < 500) return;
+      lastClickRef.current = now;
       drawCard(index);
     },
     [inputMode, currentSlotIndex, drawCard]
@@ -281,7 +333,7 @@ export default function DrawPage() {
               {currentSlotIndex >= 3
                 ? '✨ 三张牌已抽取完毕'
                 : inputMode === 'gesture'
-                ? '将手指指向你感应到的牌，捏合拇指与食指确认选择'
+                ? '左右挥手滑动牌组 · 捨合拇指与食指选牌'
                 : '点击你感应到的牌以抽取'}
             </p>
           </div>

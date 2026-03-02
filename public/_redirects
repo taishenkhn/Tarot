@@ -1,0 +1,11 @@
+# Next.js static export — each route has its own index.html
+# Redirect bare paths to trailing-slash versions
+/draw         /draw/       301
+/question     /question/   301
+/result       /result/     301
+
+# Ensure _next static assets are NEVER rewritten (must come before catch-all)
+/_next/*      /_next/:splat  200
+
+# SPA fallback — only for unknown paths (Netlify checks for existing files first)
+/*            /index.html    200

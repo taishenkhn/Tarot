@@ -18,9 +18,9 @@ const WRIST = 0;
 const INDEX_MCP = 5; // base of index finger
 
 // Thresholds
-const PINCH_ON_THRESHOLD = 0.05; // normalized distance to trigger pinch
-const PINCH_OFF_THRESHOLD = 0.07; // normalized distance to release pinch (hysteresis)
-const PINCH_HOLD_MS = 80; // must hold pinch for this long
+const PINCH_ON_THRESHOLD = 0.08; // normalized distance to trigger pinch
+const PINCH_OFF_THRESHOLD = 0.10; // normalized distance to release pinch (hysteresis)
+const PINCH_HOLD_MS = 50; // must hold pinch for this long
 const PALM_SPREAD_THRESHOLD = 0.15; // min avg distance from palm center to fingertips
 
 export interface GestureState {
@@ -45,7 +45,7 @@ export class GestureRecognizer {
   private pinchStartTime: number = 0;
   private pinchConfirmed: boolean = false;
   private lastPinchEndTime: number = 0;
-  private pinchCooldownMs: number = 300;
+  private pinchCooldownMs: number = 200;
 
   recognize(
     landmarks: HandLandmarks | null,

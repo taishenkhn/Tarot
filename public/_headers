@@ -1,0 +1,19 @@
+# MediaPipe WASM — iOS Safari 必须有正确 MIME 类型否则拒绝执行
+/mediapipe/hands/*.wasm
+  Content-Type: application/wasm
+
+/mediapipe/hands/*.tflite
+  Content-Type: application/octet-stream
+
+/mediapipe/hands/*.binarypb
+  Content-Type: application/octet-stream
+
+/mediapipe/hands/*.js
+  Content-Type: application/javascript; charset=utf-8
+
+# 全站 headers
+/*
+  Permissions-Policy: camera=*, microphone=()
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Embedder-Policy: unsafe-none
+  X-Content-Type-Options: nosniff

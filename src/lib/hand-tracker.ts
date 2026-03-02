@@ -32,15 +32,18 @@ export class HandTracker {
 
     this.hands = new Hands({
       locateFile: (file: string) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        return `/mediapipe/hands/${file}`;
       },
     });
 
+    // Detect iOS for lighter model settings
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     this.hands.setOptions({
       maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.6,
+      modelComplexity: isIOS ? 0 : 1,
+      minDetectionConfidence: isIOS ? 0.5 : 0.65,
+      minTrackingConfidence: isIOS ? 0.4 : 0.55,
     });
 
     this.hands.onResults((results: any) => {
@@ -58,11 +61,16 @@ export class HandTracker {
     this.camera = new Camera(videoElement, {
       onFrame: async () => {
         if (this.running) {
-          await this.hands.send({ image: videoElement });
+          try {
+            await this.hands.send({ image: videoElement });
+          } catch (e) {
+            // MediaPipe frame errors should not kill the loop
+            console.warn('MediaPipe frame error:', e);
+          }
         }
       },
-      width: 640,
-      height: 480,
+      width: isIOS ? 320 : 640,
+      height: isIOS ? 240 : 480,
     });
   }
 

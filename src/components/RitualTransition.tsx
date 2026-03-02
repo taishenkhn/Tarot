@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface RitualTransitionProps {
   onComplete: () => void;
@@ -8,20 +8,32 @@ interface RitualTransitionProps {
 
 export default function RitualTransition({ onComplete }: RitualTransitionProps) {
   const [step, setStep] = useState(0);
+  const [showSkip, setShowSkip] = useState(false);
+  const doneRef = useRef(false);
+
+  const skip = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStep(1), 500),    // Fade in text
-      setTimeout(() => setStep(2), 1500),   // Show secondary text
-      setTimeout(() => setStep(3), 3000),   // Start fade out
-      setTimeout(() => onComplete(), 3800), // Complete
+      setTimeout(() => setStep(1), 400),    // Fade in symbol + main text
+      setTimeout(() => setStep(2), 1200),   // Secondary text + show skip button
+      setTimeout(() => setStep(3), 2400),   // Start fade out
+      setTimeout(() => { if (!doneRef.current) { doneRef.current = true; onComplete(); } }, 3000),
     ];
+    const skipTimer = setTimeout(() => setShowSkip(true), 1500);
 
-    return () => timers.forEach(clearTimeout);
+    return () => { timers.forEach(clearTimeout); clearTimeout(skipTimer); };
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-arcana-dark/90">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-arcana-dark/90 cursor-pointer select-none"
+      onClick={skip}
+    >
       {/* Central ritual text */}
       <div className="text-center space-y-6">
         {/* Mystery symbol */}
@@ -73,11 +85,19 @@ export default function RitualTransition({ onComplete }: RitualTransitionProps) 
             ))}
           </div>
         )}
+
+        {/* Skip hint */}
+        <div
+          className="text-xs text-gold/40 transition-opacity duration-500 mt-2"
+          style={{ opacity: showSkip ? 1 : 0 }}
+        >
+          轻触跳过 →
+        </div>
       </div>
 
       {/* Fade out overlay */}
       <div
-        className="absolute inset-0 bg-arcana-dark transition-opacity duration-800 pointer-events-none"
+        className="absolute inset-0 bg-arcana-dark transition-opacity duration-600 pointer-events-none"
         style={{ opacity: step >= 3 ? 1 : 0 }}
       />
 

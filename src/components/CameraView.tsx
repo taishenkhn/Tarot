@@ -12,15 +12,35 @@ interface CameraViewProps {
   active: boolean;
 }
 
+const INIT_TIMEOUT_MS = 25000;
+
 export default function CameraView({ onGestureUpdate, onReady, onError, active }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackerRef = useRef<HandTracker | null>(null);
   const recognizerRef = useRef(new GestureRecognizer());
+  const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [statusMessage, setStatusMessage] = useState('正在初始化摄像头...');
 
+  const clearInitTimeout = () => {
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+      initTimeoutRef.current = null;
+    }
+  };
+
   const initCamera = useCallback(async () => {
     if (!videoRef.current) return;
+
+    // Hard timeout — if MediaPipe hangs (common on iOS), fall back gracefully
+    clearInitTimeout();
+    initTimeoutRef.current = setTimeout(() => {
+      console.warn('Camera init timed out');
+      setStatus('error');
+      const msg = '摄像头初始化超时，已切换到鼠标模式';
+      setStatusMessage(msg);
+      onError(msg);
+    }, INIT_TIMEOUT_MS);
 
     try {
       setStatus('loading');
@@ -46,10 +66,12 @@ export default function CameraView({ onGestureUpdate, onReady, onError, active }
       setStatusMessage('正在启动摄像头...');
       await tracker.start();
 
+      clearInitTimeout();
       setStatus('ready');
       setStatusMessage('手势识别已就绪');
       onReady();
     } catch (err: any) {
+      clearInitTimeout();
       console.error('Camera init error:', err);
       let msg = '摄像头初始化失败';
 
@@ -73,6 +95,7 @@ export default function CameraView({ onGestureUpdate, onReady, onError, active }
     }
 
     return () => {
+      clearInitTimeout();
       if (trackerRef.current) {
         trackerRef.current.stop();
       }
@@ -81,12 +104,13 @@ export default function CameraView({ onGestureUpdate, onReady, onError, active }
 
   return (
     <div className="relative">
-      {/* Hidden video element for MediaPipe */}
+      {/* Hidden video element for MediaPipe — autoPlay needed for iOS */}
       <video
         ref={videoRef}
         className="absolute opacity-0 pointer-events-none"
         style={{ width: 1, height: 1 }}
         playsInline
+        autoPlay
         muted
       />
 
